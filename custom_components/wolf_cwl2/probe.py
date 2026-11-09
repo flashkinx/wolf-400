@@ -71,11 +71,14 @@ async def async_probe_device(connection: Mapping[str, Any]) -> DeviceIdentity:
         raise InvalidIdentity("unable to decode appliance identity") from exc
     finally:
         await controller.stop()
+    # Fork change (flashkinx): some Wolf-branded UWA2-B boards report an
+    # all-zero serial at 4010-4012 that never changes. It is still a stable
+    # identity for a single appliance; a second all-zero appliance is rejected
+    # by the unique-id check of the config flow.
     if (
         not isinstance(serial, str)
         or len(serial) != 12
         or not serial.isdigit()
-        or set(serial) == {"0"}
     ):
         raise InvalidIdentity("appliance serial is not a stable 12-digit identity")
     if not isinstance(appliance_type, int) or isinstance(appliance_type, bool):

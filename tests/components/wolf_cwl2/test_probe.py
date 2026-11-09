@@ -59,10 +59,10 @@ async def test_probe_maps_connection_failure_and_closes(
     assert fake_gateway.closes == 1
 
 
-async def test_probe_rejects_zero_serial_without_endpoint_fallback(
+async def test_probe_accepts_zero_serial_as_single_appliance_identity(
     fake_gateway: FakeGateway,
 ) -> None:
-    """Reject an unverified serial instead of constructing endpoint identity.
+    """Accept the constant all-zero serial some Wolf boards report.
 
     Args:
         fake_gateway: External Modbus boundary fake.
@@ -73,6 +73,6 @@ async def test_probe_rejects_zero_serial_without_endpoint_fallback(
     fake_gateway.serial = "000000000000"
     fake_gateway.apply_identity()
 
-    with pytest.raises(InvalidIdentity):
-        await async_probe_device(CONNECTION)
+    identity = await async_probe_device(CONNECTION)
+    assert identity.serial_number == "000000000000"
     assert fake_gateway.closes == 1
